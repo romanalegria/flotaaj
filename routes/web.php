@@ -145,6 +145,7 @@ Route::get('Rendiciones/rendiciones','RendicionController@indexRendicion');
 Route::get('Rendiciones/rendiciones/{id}/CargarSolicitud','RendicionController@CargarSolicitud');
 Route::post('Rendiciones/rendiciones','RendicionController@storeRendicionDos');
 Route::post('Rendiciones/pasorendicion','RendicionController@storeRendicionPaso');
+Route::post('Rendiciones/rendiciones-final','RendicionController@storeRendicionDosV2');
 Route::get('rendiciones/solicitudes/{id}/miRendicion', [
     'as' => 'miRendicion',
     'uses' => 'RendicionController@miRendicion',

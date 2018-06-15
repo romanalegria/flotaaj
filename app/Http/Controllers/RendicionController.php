@@ -272,7 +272,136 @@ class RendicionController extends Controller
 
     }
 
+    public function storeRendicionDosV2(Request $request)
+    {
+        $date = Carbon::now();       
+        $fila = 0;
+              
+        try 
+        {
+          if ($request->isMethod('post')) 
+          {
+         
 
+            DB::beginTransaction();
+           $cabecera = new CabezeraRendicion;
+           $cabecera->fecha= $date->format('Y/m/d'); 
+           $cabecera->usuario =$request->get('id_solicitante');
+           $cabecera->proyecto=strtoupper($request->get('proyecto'));
+           $cabecera->nombreProyecto=strtoupper($request->get('nombreProyecto'));
+           $cabecera->nSolicitud = $request->get('id_solicitud');
+           $cabecera->totalRendido=0;
+           
+           if($cabecera->save())
+           {
+               //obtenemos el ultimo numero de cabeceta de rendicion almacenado
+            $id_rendicion = CabezeraRendicion::orderBy('id_rendicion','desc')->first()->id_rendicion;
+
+            //vamos a buscar el detalle de la rendicion de paso
+            $data = DetalleRendicionPaso::where("numeroSolicitud","=",$request->get('id_solicitud'));
+            
+            //\Log::info($data);
+           foreach($data as $arr)                
+           {
+               //\Log::info($data);
+               $detalle = new DetalleRendicion;  
+               $detalle->id_rendicion = $id_rendicion;
+               $detalle->fila = $fila + 1 ;
+               $detalle->codigoZona = $arr->codigoZona;
+               $detalle->tipoDocumento = $arr->tipoDocumento;;
+               $detalle->numeroDocumento = $arr->numeroDocumento;
+               $detalle->fechaDocumento = $arr->fechaDocumento;
+               $detalle->codigoGasto = $arr->codigoGasto;
+               if($arr->codigoDetalle == '')
+               {
+                   $arr->codigoDetalle = 0;
+               }
+               $detalle->codigoDetalle = $arr->codigoDetalle;
+               $detalle->monto = $arr->monto;
+               $detalle->observaciones = $arr->observaciones;
+               //$detalle->foto = $arr->foto;
+               if($arr->dias == '')
+               {
+                   $arr->dias = 0;
+               }
+               $detalle->dias = $arr->dias;
+
+               //almacenar el nombre foto de la linea
+              $detalle->foto = $arr->foto;
+              
+               
+               if(!$detalle->save())
+               {
+                   DB::rollback();
+                           
+               }           
+          
+           }   //foreach  
+
+            DB::commit();
+
+            //preparando el correo para ser enviado al jefe directoy autorice la rendición
+              //vamos a rescatar el mail de jefe del usuario
+           $idJefe= DB::table('users as a')
+                   ->select('a.name','a.email','a.idJefe')
+                   ->where('id','=', $request->get('id_solicitante'))->first();
+
+           $mailJefe = DB::table('fnd_jefe_area as a')
+                       ->select('a.nombreJefe','a.correoJefe')
+                       ->where('id','=',$idJefe->idJefe)->first();
+
+           
+            
+            
+            
+           //obtenemos el nombre del proyecto para mostrar en correo de solicitud
+           $nameProyecto = DB::connection('sqlsrv')->select("select PrjName from OPRJ WHERE PrjCode=?",[$request->get('proyecto')]);
+           $nProyecto = $nameProyecto[0]->PrjName;            
+          
+            
+            //$fromEmail = $idJefe->email;
+            //$fromName = $idJefe->name;
+            //$toEmail = $mailJefe->correoJefe;
+            //$toName = $mailJefe->nombreJefe;
+            
+
+            //para pruebas de correo solo para eroman
+            $fromEmail = 'eroman@aj.cl';
+            $fromName =  $idJefe->name;
+            $toEmail = 'eroman@aj.cl';
+            $toName = 'emilio roman';
+           
+
+             Mail::send('Mail.Rendicion',["nombre"=>$fromName,"proyecto"=>$request->get('proyecto'),"numero"=>$id_rendicion,"nombreProyecto"=>$nProyecto], function ($message) use($fromEmail,$fromName,$toEmail,$toName) {
+                $message->from($fromEmail, $fromName);
+                $message->sender($fromEmail, $fromName);
+                $message->to($toEmail, $toName);   
+                $message->cc($fromEmail, $fromName);                               
+                $message->subject('Rendición de fondos');
+                $message->priority(3);
+                //$message->attach('pathToFile');
+            }); 
+
+            //limpiar base de paso y volver fila a 0
+            $fila = 0;
+            $data = DetalleRendicionPaso::where("numeroSolicitud","=",$request->get('id_solicitud'));
+            $data->delete();
+
+           } //if cabecera-save()
+       } //if request-method
+           
+
+          
+          
+        } catch (Exception $e)
+         {
+             DB::rollback();
+        }      
+        
+
+       //return Redirect::to('Rendiciones/rendiciones');      
+           
+    }
     public function storeRendicionDos(Request $request)
     {
          $date = Carbon::now();       

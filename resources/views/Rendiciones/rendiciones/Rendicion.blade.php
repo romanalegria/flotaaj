@@ -33,6 +33,7 @@
               <div class="col-lg-8 col-sm-8 col-md-8 col-xs-12">
                 <div class="form-group">                         
                    <label for="Solicitud">Nombre:</label>&nbsp;{{$nombreProyecto}}&nbsp;
+                   <input type="hidden" name="nombreProyecto" value="{{$nombreProyecto}}" id="nombreProyecto"> 
                </div>                    
               </div>
           </div>
@@ -59,6 +60,7 @@
            </select>
        </div>
    </div>
+
     <div class="col-lg-4 col-sm-4 col-md-4 col-xs-12">
      <div class="form-group">
         <label for="tipodoc">Tipo Documento</label>
@@ -104,7 +106,7 @@
 
 <div class="row">
   <div class="col-lg-6 col-sm-6 col-md-6 col-xs-12">
-    <label for="concepto">Detalle:</label>
+    <label for="consumo">Detalle:</label>
     <div class="form-group" id="consumo" name="consumo"> 
        <select name="subconsumo" id="subconsumo" required class="form-control"> 
           <option value="">SubConcepto...</option>                        
@@ -155,7 +157,7 @@
 <div id="tab-2"> <!-- Comienzo Tab-2 -->
     <h3>Detalle Rendición</h3>
     <div class="row">
-       <table width="100%" class="display"  id="rendicion">      
+       <table width="100%" class="display"  id="rendicion" name="rendicion">      
        <thead style="background-color: #2e2f89; color:#259551; font-weight: bold;">
           <tr>
             <th>Documento</th>
@@ -185,7 +187,7 @@
 
     <div class="row">
       <div class="col-lg-6 col-sm-6 col-md-6 col-xs-12">                 
-        <button class="btn btn-primary" type="button" id="BtnEnviar">Generar Rendición</button>        
+        <button class="btn btn-primary" type="button" id="BtnGenerar">Generar Rendición</button>        
       </div>
   </div>
 
@@ -193,25 +195,16 @@
 
 </div>
 
-<script>
-  $('#rendicion').DataTable(); 
-  $('#grupoTablas').tabs();
-
-</script> 
  
-<script> 
-  
-   
-     // $(function() {
-     //    $( "#grupoTablas" ).tabs();
-     // });  
-   
-
+<script>     
+    
     $(document).ready(function() 
     {
         // $('.js-example-basic-single').select2();
         // $('.js-example-basic-multiple').select2();  
-        capa = document.getElementById('consumo');
+        $('#rendicion').DataTable(); 
+        $('#grupoTablas').tabs();
+        var capa = document.getElementById("consumo");
         capa.style.display ='none';
 
 
@@ -224,35 +217,26 @@
 
 
         $('#BtnEnviar').on('click',function()        
-        {            
+        {   
+            alert("entro al click");         
             validar_existe(function(_noexiste)
             {
+                alert('entro');
               if(_noexiste)
               {
                 validar(function(resp)
                 {
                   if(resp)
                   {
-                    //enviamos informacion                             
-                                                      
-                            // var ndoc = $('#ndoc').val();
-                            // var tipodoc = $('#tipodoc').val();
-                            // var fechadoc = $('#fechadoc').val();
-                            // var monto = $('#monto').val();                         
-                            // var observaciones = $('#observaciones').val();
-                            // var concepto = $('#concepto').val();
-                            // //var foto = $('#foto').val();
-                            // var subconsumo = $('#subconsumo').val(); 
-                             $id_zona = $('#zona').val();
-                            // var dias = $('#dias').val();                             
-
+                    //enviamos informacion                                                                                   
+                           
+                            $id_zona = $('#zona').val();                                                   
                             $foto = $('#foto');
 
                             var formData = new FormData(frmA);
                             formData.append('foto',$foto[0].files[0]);
                             formData.append('id_zona',$id_zona);
-                            var id_solicitud = $('#id_solicitud').val(); 
-
+                            var id_solicitud = $('#id_solicitud').val();                            
 
                              $.ajax
                             ({
@@ -285,10 +269,45 @@
      
         });
 
+        
+            $('#BtnGenerar').on('click',function() 
+             {                   
+                    
+                    var id_solicitante = $('#id_solicitante').val();                                       
+                    var proyecto = $('#proyecto').val();
+                    var nombreProyecto = $('#nombreProyecto').val();
+                    var id_solicitud = $('#id_solicitud').val();
+
+                    $.ajax({
+                        type: "post",
+                        url: "/Rendiciones/rendiciones-final",
+                        data: {
+                            id_solicitante: id_solicitante,
+                            proyecto: proyecto,
+                            nombreProyecto: nombreProyecto,
+                            id_solicitud: id_solicitud
+                        }, success: function (msg)                                                
+                        {
+
+                           //alert("Se ha realizado el POST con exito "+msg);
+                            swal(
+                                'Registro ingresado con exito',
+                                 'Presione el boton OK!',
+                                'success'
+                            );
+
+                            //limpiamos los input
+                            
+
+                         }
+                    });
+              });
+        
 
 
 
- });
+
+ 
    
 
 //Recargamos el detalle de la rendicion de paso
@@ -296,16 +315,19 @@ function recargar_detalle(id)
 {
     $.ajax
     ({
-        url: '/Rendiciones/recargarDetalle/'+id+',
+         url: '/Rendiciones/recargarDetalle/'+id+,
          method: 'GET'
-     }).done(function(msg) 
-     {          
+         data :{
+        }, success: function (msg)
+        {
+
+        }
           
-     });
+     });    
   
 }
 
-//Validación si ya exite rendición
+
  function validar_existe(callback)
 {
    var existe = false
@@ -349,7 +371,7 @@ function recargar_detalle(id)
 
 //Validación de monto autorizado 
   function validar(my_callback)
-   {                             
+  {                             
           var resultado = false;
           var monto = $("#monto").val();
           var concepto = $("#concepto").val();
@@ -396,27 +418,28 @@ function recargar_detalle(id)
           return resultado;          
   } 
 
-
-   function tomarID()
-   {
-
-
-    var idOpcion=document.getElementById("concepto").value;
+  function tomarID()
+    {
 
 
-    if(idOpcion == 1)
-    {            
-       capa = document.getElementById('consumo');
-       capa.style.display ='block';
+        var idOpcion=document.getElementById("concepto").value;
 
-   }
 
-   if(idOpcion == 2 || idOpcion == 3 || idOpcion == 4 || idOpcion == 5 || idOpcion == 6 || idOpcion == 7 || idOpcion == 8 || idOpcion == 9)
-   {
-    consumo.innerHTML = "";
-}
+        if(idOpcion == 1)
+        {            
+        capa = document.getElementById('consumo');
+        capa.style.display ='block';
 
-}
+    }
+
+    if(idOpcion == 2 || idOpcion == 3 || idOpcion == 4 || idOpcion == 5 || idOpcion == 6 || idOpcion == 7 || idOpcion == 8 || idOpcion == 9)
+    {
+        consumo.innerHTML = "";
+    }
+
+    }
+
+});  //fin document.ready 
 
 </script>
 
