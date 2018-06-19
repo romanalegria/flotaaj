@@ -281,9 +281,9 @@ class RendicionController extends Controller
         {
           if ($request->isMethod('post')) 
           {
-         
+            return "grabando cabecera...";
 
-            DB::beginTransaction();
+           DB::beginTransaction();
            $cabecera = new CabezeraRendicion;
            $cabecera->fecha= $date->format('Y/m/d'); 
            $cabecera->usuario =$request->get('id_solicitante');
@@ -292,15 +292,18 @@ class RendicionController extends Controller
            $cabecera->nSolicitud = $request->get('id_solicitud');
            $cabecera->totalRendido=0;
            
+           
+            
+           
            if($cabecera->save())
            {
                //obtenemos el ultimo numero de cabeceta de rendicion almacenado
             $id_rendicion = CabezeraRendicion::orderBy('id_rendicion','desc')->first()->id_rendicion;
-
             //vamos a buscar el detalle de la rendicion de paso
-            $data = DetalleRendicionPaso::where("numeroSolicitud","=",$request->get('id_solicitud'));
+            $data = DetalleRendicionPaso::where("numeroSolicitud","=",$request->get('id_solicitud'))->get();
+
             
-            //\Log::info($data);
+
            foreach($data as $arr)                
            {
                //\Log::info($data);
@@ -678,9 +681,9 @@ class RendicionController extends Controller
     public function recargarDetalle($id)
     {
          $datos=DB::table('fnd_paso_rendicion as a')        
-        ->select('a.numeroDocumento','a.tipoDocumento', 'a.monto','a.foto')
+        ->select('a.numeroDocumento','a.tipoDocumento', 'a.monto','a.foto')        
         ->where([
-            ['a.numeroSolicitud','=',$id],            
+            ['a.numeroSolicitud','=',$id]            
         ])->get()->all();
 
         return $datos;

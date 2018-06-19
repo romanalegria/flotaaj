@@ -104,10 +104,10 @@
 </div>
 </div>
 
-<div class="row">
+<div class="row" id="consumo" name="consumo">
   <div class="col-lg-6 col-sm-6 col-md-6 col-xs-12">
     <label for="consumo">Detalle:</label>
-    <div class="form-group" id="consumo" name="consumo"> 
+    <div class="form-group" > 
        <select name="subconsumo" id="subconsumo" required class="form-control"> 
           <option value="">SubConcepto...</option>                        
           @foreach ($tipogastos as $tipogasto)
@@ -196,17 +196,19 @@
 </div>
 
  
-<script>     
-    
-    $(document).ready(function() 
-    {
-        // $('.js-example-basic-single').select2();
-        // $('.js-example-basic-multiple').select2();  
-        $('#rendicion').DataTable(); 
-        $('#grupoTablas').tabs();
-        var capa = document.getElementById("consumo");
-        capa.style.display ='none';
+<script>         
+ 
+      $(function (){
+        esconde_div();  
+         $('#rendicion').DataTable(); 
+         $('#grupoTablas').tabs();
+      });
 
+      
+
+     
+      
+       
 
         $.ajaxSetup
         ({
@@ -214,14 +216,11 @@
         });
 
 
-
-
-        $('#BtnEnviar').on('click',function()        
-        {   
-            alert("entro al click");         
+         $('#BtnEnviar').on('click',function()        
+        {               
             validar_existe(function(_noexiste)
             {
-                alert('entro');
+                
               if(_noexiste)
               {
                 validar(function(resp)
@@ -269,9 +268,8 @@
      
         });
 
-        
-            $('#BtnGenerar').on('click',function() 
-             {                   
+        $('#BtnGenerar').on('click',function() 
+         {                   
                     
                     var id_solicitante = $('#id_solicitante').val();                                       
                     var proyecto = $('#proyecto').val();
@@ -301,22 +299,24 @@
 
                          }
                     });
-              });
-        
+         }); 
+  
 
 
-
-
- 
-   
+    
+ function esconde_div()
+ {
+  var capa = document.getElementById("consumo");
+  capa.style.display ='none';
+ }  
+  
 
 //Recargamos el detalle de la rendicion de paso
 function recargar_detalle(id)
 {
-    $.ajax
-    ({
-         url: '/Rendiciones/recargarDetalle/'+id+,
-         method: 'GET'
+    $.ajax({
+         url: '/Rendiciones/recargarDetalle/'+id,
+         method: 'GET',
          data :{
         }, success: function (msg)
         {
@@ -369,9 +369,9 @@ function recargar_detalle(id)
    });
 }
 
-//Validación de monto autorizado 
-  function validar(my_callback)
-  {                             
+
+function validar(my_callback)
+{                             
           var resultado = false;
           var monto = $("#monto").val();
           var concepto = $("#concepto").val();
@@ -416,30 +416,18 @@ function recargar_detalle(id)
           });       
 
           return resultado;          
-  } 
+} 
 
-  function tomarID()
-    {
-
-
+function tomarID()
+{
         var idOpcion=document.getElementById("concepto").value;
-
 
         if(idOpcion == 1)
         {            
-        capa = document.getElementById('consumo');
-        capa.style.display ='block';
+          capa = document.getElementById('consumo');
+          capa.style.display ='block';
+        }
+}
 
-    }
-
-    if(idOpcion == 2 || idOpcion == 3 || idOpcion == 4 || idOpcion == 5 || idOpcion == 6 || idOpcion == 7 || idOpcion == 8 || idOpcion == 9)
-    {
-        consumo.innerHTML = "";
-    }
-
-    }
-
-});  //fin document.ready 
 
 </script>
-
