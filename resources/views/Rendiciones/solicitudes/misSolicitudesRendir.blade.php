@@ -42,8 +42,7 @@ Solicitudes a rendir
 		                <th>Rendido</th>
 		                <th>Saldo</th>
 		                <th>Acción</th>
-		                <th>Acción2</th>
-                     <th>Acción3</th>
+		                <th>Acción2</th>                    
 		            </tr>
 		        </thead>
 		        <tfoot>
@@ -56,8 +55,7 @@ Solicitudes a rendir
 		                <th>Rendido</th>
 		                <th>Saldo</th>
 		                <th>Acción</th>
-		                <th>Acción2</th>
-                    <th>Acción3</th>
+		                <th>Acción2</th>                    
 		                
 		        	</tr>
 		        </tfoot>
@@ -77,8 +75,7 @@ Solicitudes a rendir
 						<td><?php echo $saldo; ?></td> 
 						
 					<td><a class="btn btn-success form-rendir" data-target="#Rendir" data-toggle="modal" data-id="{{$solicitud->id}}" >Rendir</a></td>
-					<td><a class="btn btn-success form-rendir2" data-target="#Rendir2" data-toggle="modal" data-id="{{$solicitud->id}}" >Rendir2</a></td>
-          <td><a href="{{url('rendiciones/rendicion/'.$solicitud->id)}}"><button class="btn btn-info">Rendir3</button></a></td>
+					<td><a class="btn btn-success form-rendir2" data-target="#Rendir2" data-toggle="modal" data-id="{{$solicitud->id}}" >Rendir2</a></td>          
 					
 					@endif						
 				</tr>

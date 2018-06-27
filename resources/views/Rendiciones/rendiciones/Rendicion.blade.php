@@ -149,6 +149,12 @@
       <button class="btn btn-danger" type="reset">Cancelar</button>
   </div>
 </div>
+
+
+<div name="mensaje" id="mensaje">
+    
+</div>
+
 {!!Form::close()!!}  
 </div>
 </div>    
@@ -159,7 +165,7 @@
     <div class="row">
        <table width="100%" class="display"  id="rendicion" name="rendicion">      
        <thead style="background-color: #2e2f89; color:#259551; font-weight: bold;">
-          <tr>
+          <tr>            
             <th>Documento</th>
             <th>Tipo</th>
             <th>Monto</th> 
@@ -170,29 +176,40 @@
         <tbody> 
           @if (isset($datos))             
               @foreach($datos as $dato)           
-               <tr>
+               <tr data-id="{{ $dato->id }}">                                
                 <td>{{$dato->numeroDocumento}}</td>
                 <td>{{$dato->tipoDocumento}}</td>
                 <td>{{$dato->monto}}</td>
                 <td><a id="photo" href="#">Ver</a></td>
                 <td> 
-                  <button id="eliminar" class="btn btn-danger" type="button"><i class="fa fa-trash" aria-hidden="true"></i>&nbsp;&nbsp;Eliminar</button>
+                  <button class="btn btn-danger btn-delete" type="button"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                  <button class="btn btn-danger btn-edit">
+                    <span class="glyphicon glyphicon-pencil"></span>
+                </button>
                 </td>            
-               </tr>
-            @endforeach          
+               </tr>              
+            @endforeach                     
           @endif            
         </tbody>     
     </table>
+   
     </div>
-
+   
     <div class="row">
       <div class="col-lg-6 col-sm-6 col-md-6 col-xs-12">                 
         <button class="btn btn-primary" type="button" id="BtnGenerar">Generar Rendición</button>        
       </div>
   </div>
-
+  
 </div>  <!-- Fin Tab-2 --> 
 
+ 
+ {{Form::Open(array('action'=>array('RendicionController@eliminarFilaPaso',':USER_ID'),'method'=>'DELETE','id' => 'form-delete'))}}
+ {!! Form::close() !!}
+
+
+
+ 
 </div>
 
  
@@ -202,14 +219,10 @@
         esconde_div();  
          $('#rendicion').DataTable(); 
          $('#grupoTablas').tabs();
+         $('#mensaje').hide();
       });
 
       
-
-     
-      
-       
-
         $.ajaxSetup
         ({
             headers: {'X-CSRF-Token': $('meta[name=_token]').attr('content')}
@@ -217,7 +230,8 @@
 
 
          $('#BtnEnviar').on('click',function()        
-        {               
+        {              
+          
             validar_existe(function(_noexiste)
             {
                 
@@ -228,7 +242,7 @@
                   if(resp)
                   {
                     //enviamos informacion                                                                                   
-                           
+                         
                             $id_zona = $('#zona').val();                                                   
                             $foto = $('#foto');
 
@@ -245,7 +259,9 @@
                                 processData: false,
                                 contentType: false,
                                 success: function (Respuesta)                                                
-                                 {                                    
+                                 {       
+                                    recargar_detalle(id_solicitud);
+
                                       //limpiamos los input
                                        document.getElementById('ndoc').value = '';
                                        document.getElementById('fechadoc').value = '';
@@ -253,16 +269,20 @@
                                        document.getElementById('observaciones').value = '';
                                        document.getElementById('foto').value = '';
                                        document.getElementById('dias').value = '';
-                                       capa = document.getElementById('consumo');
-                                       capa.style.display ='none';                                
-                                       recargar_detalle(id_solicitud);
+                                       //capa = document.getElementById('consumo');
+                                       //capa.style.display ='none';
+                                       esconde_div(); 
+                                       
+                                       
+                                       
                                    }
-                                });
+                                });                               
 
-                               
-
-                  }
+                     }
                 });
+              }else
+              {
+                
               }
             });
      
@@ -284,24 +304,57 @@
                             proyecto: proyecto,
                             nombreProyecto: nombreProyecto,
                             id_solicitud: id_solicitud
-                        }, success: function (msg)                                                
+                        }, success: function (data)                                                
                         {
-
-                           //alert("Se ha realizado el POST con exito "+msg);
-                            swal(
-                                'Registro ingresado con exito',
-                                 'Presione el boton OK!',
-                                'success'
-                            );
-
+                            if(data.status)
+                            {                               
+                                $('#mensaje').show(0,function() {
+                                    alert(data.message);
+                                });                             
+                           }else
+                            {
+                                 
+                                 //si el resultdo es false
+                             
+                             }
                             //limpiamos los input
                             
 
                          }
                     });
          }); 
-  
 
+         $('.btn-delete').on('click',function (e) 
+         {
+            e.preventDefault();
+            var row = $(this).parents('tr');
+            var id = row.data('id');         
+            var form = $('#form-delete');
+            var url = form.attr('action').replace(':USER_ID', id);
+            var data = form.serialize();
+            alert(id);
+
+            row.fadeOut();            
+            
+            $.post(url, data, function (result) {
+                alert(result);
+             }).fail(function () {
+                $('#mensaje').show(0,function() {
+                    alert('La fila no fue elimnada');
+                    row.show();
+                });
+             });   
+                     
+           
+         });
+        
+         $('.btn-edit').on('click',function (e) 
+         {
+            e.preventDefault();
+            var row = $(this).parents('tr');
+            var id = row.data('id');  
+             alert(id);
+         });
 
     
  function esconde_div()
@@ -314,16 +367,29 @@
 //Recargamos el detalle de la rendicion de paso
 function recargar_detalle(id)
 {
-    $.ajax({
+  /*   $.ajax({
          url: '/Rendiciones/recargarDetalle/'+id,
          method: 'GET',
          data :{
-        }, success: function (msg)
+        }, success: function (data)
         {
-
+         
+           
         }
           
-     });    
+    });    */
+
+    $('#rendicion > tbody:last-child').append('<tr class="selected" id="fila'+'" onclick="seleccionar(this.id);">'+             
+       '<td>'+$("#ndoc").val()+
+       '</td><td>'+$("#tipodoc").val()+             
+       '</td><td>'+$("#monto").val()+       
+       '</td><td>'+'<a id="photo" href="#">Ver</a>'+        
+       '</td><td><button class="btn btn-danger btn-delete" type="button"><i class="fa fa-trash" aria-hidden="true"></i></button>'+
+       '</td><td><button class="btn btn-danger btn-edit"><span class="glyphicon glyphicon-pencil"></span></button>'+
+       '</td></tr>');
+    
+       
+         
   
 }
 
@@ -354,7 +420,10 @@ function recargar_detalle(id)
                    
                 }else
                 {
-                    swal("Rendición de fondos", Respuesta.mensaje, "warning");
+                    //swal("Rendición de fondos", Respuesta.mensaje, "warning");
+                    $('#mensaje').show(0,function() {
+                        alert(Respuesta.mensaje);
+                    });
                     existe =  false;                    
                     
                 }                          

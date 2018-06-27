@@ -150,6 +150,8 @@ Route::get('rendiciones/solicitudes/{id}/miRendicion', [
     'as' => 'miRendicion',
     'uses' => 'RendicionController@miRendicion',
 ]);
+
+
 Route::get('rendiciones/solicitudes/{id}/miRendicion2', [
     'as' => 'miRendicion2',
     'uses' => 'RendicionController@miRendicion2',
@@ -177,6 +179,15 @@ Route::get('Rendiciones/recargarDetalle/{id}', [
     'uses' => 'RendicionController@recargarDetalle',
 ]);
 
+Route::delete('/Rendiciones/eliminarFilaPaso/{id}', [
+    'as' => 'eliminarFilaPaso',
+    'uses' => 'RendicionController@eliminarFilaPaso',
+]);
+
+Route::get('/Rendiciones/editarFilaPaso/{id}', [
+    'as' => 'editarFilaPaso',
+    'uses' => 'RendicionController@editarFilaPaso',
+]);
 
 
 //CONTROL DE ARRIENDO OCASIONAL

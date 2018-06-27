@@ -8,7 +8,7 @@ class CabezeraRendicion extends Model
 {
     protected $table='fnd_rendicion_cabecera';
 
-    protected $primaryKey='id';
+    protected $primaryKey='id_rendicion';
 
  
      protected $dateFormat = 'U';

@@ -272,16 +272,50 @@ class RendicionController extends Controller
 
     }
 
+    public function eliminarFilaPaso($id, Request $request)
+    {
+        $filaPaso=DetalleRendicionPaso::findOrFail($id);
+        if($filaPaso->delete())
+        {
+            $jsondata['status'] = true;
+            $jsondata['message'] = 'Movimiento eliminado con éxito Nº' . ' '.  $id;
+
+             if ($request->ajax())
+              {
+                return $jsondata['message'];
+              }
+        }      
+     
+    }
+
+    public function editarFilaPaso($id,Request $request)
+    {
+        $filaPaso=DetalleRendicionPaso::findOrFail($id);
+
+        if($filaPaso)
+        {
+            $jsondata['status'] = true;
+            $jsondata['message'] = 'Movimiento editado con éxito Nº' . ' '.  $id;
+
+             if ($request->ajax())
+              {
+                return $jsondata['message'];
+              }
+        }      
+
+		
+    }
+
     public function storeRendicionDosV2(Request $request)
     {
         $date = Carbon::now();       
         $fila = 0;
-              
+           
+        
         try 
         {
           if ($request->isMethod('post')) 
-          {
-            return "grabando cabecera...";
+          {            
 
            DB::beginTransaction();
            $cabecera = new CabezeraRendicion;
@@ -290,14 +324,12 @@ class RendicionController extends Controller
            $cabecera->proyecto=strtoupper($request->get('proyecto'));
            $cabecera->nombreProyecto=strtoupper($request->get('nombreProyecto'));
            $cabecera->nSolicitud = $request->get('id_solicitud');
-           $cabecera->totalRendido=0;
-           
-           
-            
+           $cabecera->totalRendido=0;           
+                     
            
            if($cabecera->save())
            {
-               //obtenemos el ultimo numero de cabeceta de rendicion almacenado
+             //obtenemos el ultimo numero de cabeceta de rendicion almacenado
             $id_rendicion = CabezeraRendicion::orderBy('id_rendicion','desc')->first()->id_rendicion;
             //vamos a buscar el detalle de la rendicion de paso
             $data = DetalleRendicionPaso::where("numeroSolicitud","=",$request->get('id_solicitud'))->get();
@@ -306,10 +338,11 @@ class RendicionController extends Controller
 
            foreach($data as $arr)                
            {
+               $fila = $fila + 1;
                //\Log::info($data);
                $detalle = new DetalleRendicion;  
                $detalle->id_rendicion = $id_rendicion;
-               $detalle->fila = $fila + 1 ;
+               $detalle->fila = $fila;
                $detalle->codigoZona = $arr->codigoZona;
                $detalle->tipoDocumento = $arr->tipoDocumento;;
                $detalle->numeroDocumento = $arr->numeroDocumento;
@@ -400,11 +433,22 @@ class RendicionController extends Controller
          {
              DB::rollback();
         }      
+
+        $notificacion = array (
+            'message' => 'Rendición de fondos creada con exitò',
+            'alert-type' => 'success'
+         );
+
+        return response()->json($notificacion);
+
+        //return Redirect::to('rendiciones/solicitudes')->with($notificacion);
         
 
        //return Redirect::to('Rendiciones/rendiciones');      
            
     }
+
+
     public function storeRendicionDos(Request $request)
     {
          $date = Carbon::now();       
@@ -681,12 +725,13 @@ class RendicionController extends Controller
     public function recargarDetalle($id)
     {
          $datos=DB::table('fnd_paso_rendicion as a')        
-        ->select('a.numeroDocumento','a.tipoDocumento', 'a.monto','a.foto')        
+        ->select('a.numeroDocumento','a.tipoDocumento', 'a.monto','a.foto','a.id')        
         ->where([
             ['a.numeroSolicitud','=',$id]            
         ])->get()->all();
 
-        return $datos;
+        
+        return response()->json($datos);
     }
    
 
@@ -764,9 +809,10 @@ class RendicionController extends Controller
          $tipogastos =DB::table('fnd_tipo_gasto')->where('id','>','0')->get();
 
            //obtenemos el objeto DetalleRendicionPaso        
-            $datos=DetalleRendicionPaso::where('numeroSolicitud','=',$id_solicitud)->get()->all();
-
+            $datos=DetalleRendicionPaso::where('numeroSolicitud','=',$id_solicitud)
+            ->orderBy('id','asc')->get()->all();            
         
+       
 
        
 
