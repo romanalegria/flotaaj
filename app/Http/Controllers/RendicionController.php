@@ -263,14 +263,11 @@ class RendicionController extends Controller
 
            return Redirect::to('rendiciones/solicitudes');
         }
-
-
-       
-
-        
+   
         //return Redirect::to('rendiciones/solicitudes');
 
     }
+
 
     public function eliminarFilaPaso($id, Request $request)
     {
@@ -808,10 +805,16 @@ class RendicionController extends Controller
          //cargamos los subgastos para rendir
          $tipogastos =DB::table('fnd_tipo_gasto')->where('id','>','0')->get();
 
-           //obtenemos el objeto DetalleRendicionPaso        
-            $datos=DetalleRendicionPaso::where('numeroSolicitud','=',$id_solicitud)
-            ->orderBy('id','asc')->get()->all();            
+        //obtenemos el objeto DetalleRendicionPaso        
+        $datos=DetalleRendicionPaso::where('numeroSolicitud','=',$id_solicitud)->get()->all();
+        //->orderBy('id','asc')->get()->all();
         
+   /*     $datos=DB::table('fnd_paso_rendicion as a')
+        ->select('a.id','a.numeroSolicitud','a.numeroDocumento','a.monto','foto','a.tipoDocumento')        
+        ->where('a.numeroSolicitud','=',$id_solicitud)        
+        ->orderBy('a.id','asc')
+        ->paginate(7);
+        */
        
 
        

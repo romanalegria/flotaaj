@@ -1,4 +1,6 @@
 
+
+
 <div id="grupoTablas">
   <ul>
     <li><a href="#tab-1">Rendir</a></li>
@@ -163,14 +165,15 @@
 <div id="tab-2"> <!-- Comienzo Tab-2 -->
     <h3>Detalle Rendición</h3>
     <div class="row">
-       <table width="100%" class="display"  id="rendicion" name="rendicion">      
+       <table width="100%" class="table table-bordered table-hover"  id="rendicion" name="rendicion">      
        <thead style="background-color: #2e2f89; color:#259551; font-weight: bold;">
           <tr>            
             <th>Documento</th>
             <th>Tipo</th>
             <th>Monto</th> 
             <th>Foto</th> 
-            <th>Acción</th>         
+            <th>Acción</th>   
+
           </tr>
        </thead> 
         <tbody> 
@@ -182,19 +185,17 @@
                 <td>{{$dato->monto}}</td>
                 <td><a id="photo" href="#">Ver</a></td>
                 <td> 
-                  <button class="btn btn-danger btn-delete" type="button"><i class="fa fa-trash" aria-hidden="true"></i></button>
-                  <button class="btn btn-danger btn-edit">
-                    <span class="glyphicon glyphicon-pencil"></span>
-                </button>
+                  <button class="btn btn-danger" type="button" onclick="eliminar({{ $dato->id }});"><i class="fa fa-trash" aria-hidden="true"></i></button>               
+                  <button class="btn btn-danger " type="button" onclick="editar({{ $dato->id }});"><span class="glyphicon glyphicon-pencil"></span></button>
                 </td>            
                </tr>              
             @endforeach                     
           @endif            
         </tbody>     
     </table>
-   
+    
     </div>
-   
+  
     <div class="row">
       <div class="col-lg-6 col-sm-6 col-md-6 col-xs-12">                 
         <button class="btn btn-primary" type="button" id="BtnGenerar">Generar Rendición</button>        
@@ -203,21 +204,35 @@
   
 </div>  <!-- Fin Tab-2 --> 
 
+
+
  
- {{Form::Open(array('action'=>array('RendicionController@eliminarFilaPaso',':USER_ID'),'method'=>'DELETE','id' => 'form-delete'))}}
- {!! Form::close() !!}
-
-
+ {{-- {{Form::Open(array('action'=>array('RendicionController@eliminarFilaPaso',':USER_ID'),'method'=>'DELETE','id' => 'form-delete'))}}
+ {!! Form::close() !!} --}}
 
  
 </div>
 
- 
+
+
 <script>         
  
       $(function (){
         esconde_div();  
-         $('#rendicion').DataTable(); 
+         $('#rendicion').dataTable({
+            "language":{
+                  "sProcessing": "Procesanso...",
+                  "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                  "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLost": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                  }
+            },
+            "processing": true,
+            "serviceSide": true
+         }); 
          $('#grupoTablas').tabs();
          $('#mensaje').hide();
       });
@@ -332,8 +347,7 @@
             var form = $('#form-delete');
             var url = form.attr('action').replace(':USER_ID', id);
             var data = form.serialize();
-            alert(id);
-
+          
             row.fadeOut();            
             
             $.post(url, data, function (result) {
@@ -352,11 +366,52 @@
          {
             e.preventDefault();
             var row = $(this).parents('tr');
+            row.fadeOut();
             var id = row.data('id');  
              alert(id);
          });
 
-    
+
+function eliminar(id)
+{
+       
+
+      $.ajax({
+                 type: "delete",
+                 url: "/Rendiciones/eliminarFilaPaso/"+id,
+                 data: 
+                 {
+                    
+                 },success: function (Result)                                                
+                 {       
+                    var row = $(this).parents('tr');
+                    row.fadeOut(); 
+                   alert(Result);
+                 }
+              });            
+
+
+            //var url = form.attr('action').replace(':USER_ID', id);
+            //var data = form.serialize();
+          
+            //row.fadeOut();            
+            
+            // $.post(url, data, function (result) {
+            //     alert(result);
+            //  }).fail(function () {
+            //     $('#mensaje').show(0,function() {
+            //         alert('La fila no fue elimnada');
+            //         row.show();
+            //     });
+            //  });   
+}
+  
+function editar(id)
+{
+
+}
+
+
  function esconde_div()
  {
   var capa = document.getElementById("consumo");
@@ -498,5 +553,6 @@ function tomarID()
         }
 }
 
-
 </script>
+
+
