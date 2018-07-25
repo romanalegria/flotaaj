@@ -288,16 +288,20 @@ class RendicionController extends Controller
     public function editarFilaPaso($id,Request $request)
     {
         $filaPaso=DetalleRendicionPaso::findOrFail($id);
+        
+        //cargamos las zonas para topes de consumo
+         $zonas = Zona::all();
+         
 
         if($filaPaso)
-        {
-            $jsondata['status'] = true;
-            $jsondata['message'] = 'Movimiento editado con éxito Nº' . ' '.  $id;
-
+        {        
+         
              if ($request->ajax())
-              {
-                return $jsondata['message'];
-              }
+             {
+                return [
+                  "filaPaso" => DetalleRendicionPaso::where('id',$id)->get()->toArray()                  
+                ];
+             }
         }      
 
 		
@@ -645,13 +649,80 @@ class RendicionController extends Controller
     }
 
 
-    public function storeRendicionPaso(Request $request)
+    public function storeRendicionPaso(Request $request, $id = null ) 
     {      
    
-      
-       // var_dump($request->all());  
-       // dd();    
+      if ($id = null) 
+      {
+       
+        //Creacion 
 
+        $this->validate($request, [
+        'fotom' => 'required|image'
+        ]);
+
+        $file = $request->file('fotom');        
+        $filename = $file->getClientOriginalName();        
+        $file->move(public_path().'/imagenes/rendiciones/',time().$file->getClientOriginalName());
+
+        //Image::make($file)->fit(144,144)->save($path)
+
+        $rendicion=DetalleRendicion::findOrFail($id);
+        $rendicion->codigoZona =$request->get('id_zonam');
+        $rendicion->tipoDocumento =$request->get('tipodocm');
+        $rendicion->numeroDocumento =$request->get('ndocm');
+        $rendicion->fechaDocumento =$request->get('fechadocm');
+        $rendicion->codigoGasto =$request->get('conceptom');      
+      
+        if(empty($request->get('subconsumom')) || is_null($request->get('subconsumom')))
+        {
+            $rendicion->codigoDetalle = 0;
+        }else
+        {
+            $rendicion->codigoDetalle =$request->get('subconsumom');
+        }
+
+        $rendicion->monto =$request->get('montom');
+
+        $rendicion->observaciones =$request->get('observacionesm');
+        
+        $rendicion->foto = $filename;
+
+
+         // if (Input::hasFile($request->get('foto')))
+         //  {
+         //     $file=Input::file($request->get('foto'));
+         //     $file->move(public_path().'/imagenes/rendiciones/',$file->getClientOriginalName());
+         //     $rendicion->foto=$file->getClientOriginalName();
+         //  }
+
+
+
+         if(empty($request->get('dias')) || is_null($request->get('dias')))
+         {
+            $rendicion->dias = 0;
+         }else
+         {
+            $rendicion->dias =$request->get('dias');    
+         }                               
+      
+         $saved = $rendicion->save();
+        
+        $data['success'] = $saved;
+        $data['mensaje'] = 'Algún dato erroneo por favor revisar';
+        //$data['path'] = $rendicion->getAvatarUrl().'?'. iniqid();
+       
+        //obtenemos el objeto DetalleRendicionPaso        
+        $datos=DetalleRendicionPaso::all();        
+         
+        return [$data,$datos];
+        
+        //return Redirect::to('Rendiciones/rendiciones');
+      
+      }
+      else
+      {
+        //Modificacion
         $this->validate($request, [
         'foto' => 'required|image'
         ]);
@@ -713,7 +784,10 @@ class RendicionController extends Controller
          
         return [$data,$datos];
         
-        //return Redirect::to('Rendiciones/rendiciones');
+        
+
+      }   
+       
         
 
     }
